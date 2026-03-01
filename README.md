@@ -83,3 +83,17 @@ US-Car-Accidents/
 &ensp; &ensp; └── README.md  
 ├── README.md  
 └── requirements.txt  
+
+---
+
+## How to run
+
+1. Create a virtual environment  
+2. Install the required packages using:
+
+   ```bash
+   python -m pip install -r requirements.txt
+   
+3. Run the notebooks in order
+
+---
