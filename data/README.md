@@ -3,9 +3,7 @@
 This folder contains the dataset used in the project.
 
 ## Included files
-- **US_accidents_dataset.parquet**  
-  Main dataset used for all analyses and models.  
-  It contains U.S. traffic accident records with timestamps, weather information, location data and various contextual features.
+**[US_accidents_dataset.parquet](https://drive.google.com/file/d/1dgYLBDKVjPKdry_H1vriSSgI0b7BoGn_/view?usp=share_link)**: Main dataset used for all analyses and models. It contains U.S. traffic accident records with timestamps, weather information, location data and various contextual features.
 
 ## Dataset Schema
 
