@@ -3,7 +3,6 @@
 This project explores the *US Car Accidents* dataset using a mix of data analysis, feature engineering and machine learning.  
 The goal is to predict whether an accident reaches the highest severity level (Severity = 4) using only the information available at the moment the accident happens.
 
-The work was done as preparation for a thesis assignment.
 
 ---
 
