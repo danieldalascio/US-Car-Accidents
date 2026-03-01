@@ -93,6 +93,6 @@ US-Car-Accidents/
    ```bash
    python -m pip install -r requirements.txt
    
-3. Run the notebooks in order
+3. Run the notebook in order
 
 ---
