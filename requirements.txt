@@ -7,3 +7,6 @@ shap>=0.50.0
 pyarrow>=23.0.1
 fastparquet>=2025.12.0
 joblib>=1.5.2
+
+This file can be placed in the root of the repository; cloners can recreate the environment with:
+python -m pip install -r requirements.txt
