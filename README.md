@@ -9,7 +9,7 @@ The goal is to predict whether an accident reaches the highest severity level (S
 ## Project Overview
 
 ### 1. Data preparation
-The original dataset is quite large (7.7M rows), so I selected only the columns that are actually known at time *t0* (when the accident begins).  
+The original dataset is quite large, so I selected only the columns that are actually known at time *t0* (when the accident begins).  
 I also synchronized the weather table to avoid temporal leakage, keeping only weather observations with timestamps ≤ Start_Time.
 
 A few simple features were added:
