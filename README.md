@@ -77,13 +77,13 @@ A few issues required attention:
 ---
 
 ## Repository Structure
-US-Car-Accidents/
-│
-├── notebook
-│
-├── data/
-│   └── README.md
-│
-├── README.md
-│
-└── requirements.txt
+US-Car-Accidents/  
+│  
+├── notebook  
+│  
+├── data/  
+│   └── README.md  
+│  
+├── README.md  
+│  
+└── requirements.txt  
