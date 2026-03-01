@@ -80,7 +80,7 @@ A few issues required attention:
 US-Car-Accidents/  
 ├── data/  
 &ensp; &ensp; └── README.md  
-├── accidents_us_notebook.ipynb  
+├── 01_US_accidents_notebook.ipynb  
 ├── README.md  
 └── requirements.txt  
 
