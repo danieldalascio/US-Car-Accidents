@@ -78,9 +78,9 @@ A few issues required attention:
 
 ## Repository Structure
 US-Car-Accidents/  
-├── notebook  
 ├── data/  
 &ensp; &ensp; └── README.md  
+├── accidents_us_notebook.ipynb  
 ├── README.md  
 └── requirements.txt  
 
