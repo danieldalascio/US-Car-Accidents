@@ -1,77 +1,139 @@
-# US-Car-Accidents — ML Analysis and Modeling
+# US-Car-Accidents — Machine Learning Analysis and Modeling
 
-This project explores the *US Car Accidents* dataset using a mix of data analysis, feature engineering and machine learning.  
-The goal is to predict whether an accident reaches the highest severity level (Severity = 4) using only the information available at the moment the accident happens.
-
+This project explores the **US Car Accidents** dataset through data preparation, feature engineering,  
+modeling, explainability techniques, calibration, and error analysis.  
+The goal is to predict whether an accident reaches the **highest severity level (Severity = 4)** using  
+only information available **at the moment the accident occurs** (t0).
 
 ---
 
 ## Project Overview
 
-### 1. Data preparation
-The original dataset is quite large, so I selected only the columns that are actually known at time *t0* (when the accident begins).  
-I also synchronized the weather table to avoid temporal leakage, keeping only weather observations with timestamps ≤ Start_Time.
+### 1. Data Preparation
+The original dataset contains ~7.7M rows.  
+To work efficiently, I used a **1M sampled subset** and loaded only the columns available at t0.
 
-A few simple features were added:
-- hour of day, day of week  
-- binned latitude/longitude  
-- boolean flags extracted from some categorical fields  
+To avoid temporal leakage:
+- Post-event fields (e.g., `End_Time`, `Distance(mi)`) were removed.
+- Weather data was filtered to include only `Weather_Timestamp ≤ Start_Time`.
 
-The final train/test split was **time‑based**: the most recent 90 days were held out for testing.
+Feature engineering included:
+- hour, day of week, month, weekend flag  
+- binned latitude/longitude to approximate spatial regions  
+- boolean POI indicators (amenity, junction, traffic signal, etc.)
+
+A **time‑based split** was used for validation:  
+the **last 90 days** of data were held out as the test period.
 
 ---
 
 ## Models
 
-### Baseline: Logistic Regression  
-Implemented using a scikit‑learn pipeline with:
-- imputation  
-- `OneHotEncoder(min_frequency=100)` for high-cardinality categorical features  
-- `class_weight="balanced"`  
+### Baseline — Logistic Regression
+Implemented within a scikit‑learn pipeline:
 
-On the held‑out test period, the model reaches:
-- **Average Precision ≈ 0.09**
-- **F1 ≈ 0.20**
+- median/mode imputation  
+- `OneHotEncoder(min_frequency=100)` to reduce cardinality  
+- `class_weight="balanced"` to counter class imbalance
 
-Given the rarity of severe accidents, both precision and recall remain low.  
-This logistic model is saved as the baseline:  
+**Performance on the test set:**
+- **Average Precision (PR‑AUC): ~0.127**
+- **F1-score: ~0.143**
+
+Given the rarity of severity‑4 accidents, these values are aligned  
+with expectations for rare-event modeling.  
+This model is stored as the baseline:  
 `artifacts/baseline_logreg_ohe.joblib`.
-
-### LightGBM  
-A second model (LightGBM) was tested afterwards.  
-It provides slightly better metrics while using the same features and preprocessing.
 
 ---
 
-## What influences the predictions?
+### LightGBM (Advanced Model)
+A gradient‑boosted tree model was trained using the same preprocessed features.
 
-To understand which factors the models rely on, I used:
+**Performance on the test set:**
+- **PR‑AUC: ~0.209**
+- **F1-score: ~0.171**
 
-### • Permutation Importance  
-Showed that the most relevant factors are:
-- hour of day  
-- weather conditions (visibility, precipitation)  
-- geographic location (lat/lng bins)
+LightGBM provides a clear improvement in both ranking quality and  
+classification performance.
 
-Infrastructure-related variables (signals, roundabouts, etc.) had very low importance.
+Additionally, probabilities were calibrated using **Isotonic Regression**,  
+resulting in **well-aligned, trustworthy predicted probabilities**, as shown  
+by calibration curves across several binning settings.
 
-### • SHAP (TreeExplainer)  
-Confirmed the ranking and provided directionality:  
-lower visibility, bad weather and peak hours tend to increase the predicted probability of a severe accident.
+---
 
-These results make sense physically and match known traffic patterns.
+## What Influences the Predictions?
+
+### • Permutation Importance (raw-level)
+The most influential features are:
+
+1. **Geographical context**  
+   (`State`, `City`, `County`, and spatial bins)  
+2. **Seasonality** (`month`)  
+3. **Weather**  
+   (temperature, visibility, precipitation)  
+4. **Time-of-day**  
+   (`hour`) — important but secondary compared to geography and seasonality
+
+Infrastructure-related POI variables (traffic signals, junctions, roundabouts)  
+showed **minimal importance**.
+
+### • SHAP (post-OHE, local/global explainability)
+SHAP confirms and refines these findings:
+
+- Several **state-level categories** (`State_CA`, `State_MN`, etc.) strongly  
+  influence predictions.
+- Winter months, freezing temperatures, low visibility, and evening/night  
+  hours tend to **increase predicted severity**.
+- Some **rare geographic categories** (e.g., infrequent counties/cities)  
+  produce large SHAP values due to their heterogeneous and highly variable risk.
+
+Overall, the model relies on a combination of **geography**, **seasonality**,  
+**weather**, and **temporal patterns** to estimate accident severity.
+
+---
+
+## Additional Analyses
+
+### • Probability Calibration
+Isotonic Regression produced **excellent calibration**, with predicted  
+probabilities closely matching the true fraction of positives across  
+different binning granularities.
+
+### • Recall@Top‑k (operational metric)
+Selecting only the **top 1% highest‑risk predictions** recovers:
+- **Recall@Top‑278: ~10.3%**
+
+This is meaningful for real-world prioritization where only a small  
+fraction of incidents can be reviewed or flagged.
+
+### • Error Analysis
+The model performs unevenly across:
+
+- **States**: some low-data states (NM, WY, WV…) show very high error rates,  
+  highlighting **geographical dataset shift**.
+- **Hours**: performance is worse during **night-time hours**,  
+  better during morning/daytime.
+- **Weather conditions**: rare and extreme weather scenarios  
+  (freezing rain, sleet, blowing snow) yield the highest error rates due  
+  to limited representation in the dataset.
+
+These findings identify concrete opportunities to improve model robustness  
+(e.g., geographic cross-validation, richer weather features, stratified sampling).
 
 ---
 
 ## Dataset Challenges
 
-A few issues required attention:
+Key difficulties addressed during the project:
 
-- **Temporal leakage** (columns like `End_Time` or future weather) → removed or filtered  
-- **High number of missing values** in weather features → simple imputations + LightGBM’s handling of NaNs  
-- **Severe class imbalance** → class weights and PR‑AUC as main metric  
-- **Very high cardinality** in city/ZIP/weather → `min_frequency` encoding + coordinate binning  
-- **Time‑aware validation** → avoids overly optimistic estimates
+- **Temporal leakage** → removed post-event features, filtered weather timestamps  
+- **Missing values** → simple imputations + LightGBM’s native NaN handling  
+- **Severe class imbalance** → class weighting + PR‑AUC and Recall@k  
+- **High cardinality categorical features** → grouped with  
+  `min_frequency=100` and geographic binning  
+- **Time-aware evaluation** → avoids overly optimistic estimates  
 
 ---
 
